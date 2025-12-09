@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Relationship Levels — Prototype</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#7c3aed;--glass:rgba(255,255,255,0.04)}
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#071026 0%, #071430 60%);color:#e6eef8}
+    .wrap{max-width:980px;margin:36px auto;padding:28px}
+    header{display:flex;align-items:center;gap:18px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ff7ab6);display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 18px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:20px}
+    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 6px 24px rgba(2,6,23,0.6)}
+    .muted{color:var(--muted);font-size:14px}
+
+    /* quiz styles */
+    .question{margin-bottom:14px}
+    .options{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .opt{background:var(--glass);padding:8px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,0.03)}
+    .opt.selected{outline:3px solid rgba(124,58,237,0.18);background:linear-gradient(90deg,rgba(124,58,237,0.06),rgba(255,255,255,0.012))}
+    .footer{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:14px}
+    .btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+
+    /* right column */
+    .progress-wrap{display:flex;flex-direction:column;gap:12px}
+    .progress{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#ff7ab6);width:0%}
+    .level-badge{display:inline-block;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.03)}
+    .unlock{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:10px;border-radius:10px}
+    .unlock h4{margin:0 0 6px}
+    .small{font-size:13px;color:var(--muted)}
+    .result{padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(124,58,237,0.06),transparent);}
+
+    footer{color:var(--muted);margin-top:18px;font-size:13px}
+
+    @media (max-width:900px){.grid{grid-template-columns:1fr} .wrap{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">RL</div>
+      <div>
+        <h1>Relationship Levels — Prototype</h1>
+        <p class="lead">A playful, confidence-first guide that shows what actions are typically appropriate as a relationship deepens.</p>
+      </div>
+    </header>
+
+    <main class="grid" style="margin-top:18px">
+      <section class="card" id="quizCard">
+        <h3>Quick Relationship Check</h3>
+        <p class="muted">Answer honestly. We'll compute a friendly level and show you unlocked actions.</p>
+
+        <div id="quizArea" style="margin-top:14px">
+          <!-- questions injected by JS -->
+        </div>
+
+        <div class="footer">
+          <div class="small">Progress: <span id="qCount">0</span>/<span id="qTotal">0</span></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="prevBtn">Back</button>
+            <button class="btn" id="nextBtn">Next</button>
+            <button class="btn ghost" id="resetBtn">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="progress-wrap">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="small">Relationship Maturity</div>
+              <div style="margin-top:6px"><span class="level-badge" id="levelBadge">Level —</span></div>
+            </div>
+            <div style="text-align:right">
+              <div class="small">Score</div>
+              <div id="scoreNum" style="font-weight:700;font-size:18px">0</div>
+            </div>
+          </div>
+
+          <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+
+          <div style="margin-top:10px">
+            <div class="unlock">
+              <h4 id="unlockTitle">—</h4>
+              <div class="small" id="unlockDesc">Complete the quiz to see unlocked actions.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div class="result" id="resultCard">
+              <strong id="resultHeadline">Answer questions to get your level</strong>
+              <p class="small" id="resultText">You'll get clear, confidence-forward guidance at each level. Level 5 is written to be decisive.</p>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn" id="shareBtn">Copy Share Text</button>
+            <button class="btn ghost" id="downloadBtn">Download HTML</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      Tip: this is a prototype. Use the "Reset" button to retake the quiz. Built for GitHub as a single <code>index.html</code> file.
+    </footer>
+  </div>
+
+  <script>
+    /* ====== Questions and scoring ======
+       Each answer provides points toward a maturity score.
+       The score maps to levels 1-10.
+    */
+
+    const questions = [
+      {
+        q: 'How long have you been regularly seeing this person (dating, talking, spending time)?',
+        opts: [
+          {t: 'Less than 2 weeks', v: 2},
+          {t: '2–8 weeks', v: 4},
+          {t: '3–6 months', v: 7},
+          {t: '6+ months', v: 9}
+        ]
+      },
+      {
+        q: 'How often do you communicate honestly about feelings and boundaries?',
+        opts: [
+          {t: 'Rarely', v: 1},
+          {t: 'Sometimes', v: 4},
+          {t: 'Often, when it matters', v: 7},
+          {t: 'Openly and regularly', v: 10}
+        ]
+      },
+      {
+        q: 'How well do you handle small conflicts?',
+        opts: [
+          {t: 'Avoid or escalate', v: 1},
+          {t: 'We make up but repeat', v: 4},
+          {t: 'We talk and adjust', v: 7},
+          {t: 'We learn and adapt', v: 10}
+        ]
+      },
+      {
+        q: 'How comfortable are you sharing personal details (family stories, fears)?',
+        opts: [
+          {t: 'Not yet', v: 1},
+          {t: 'A little', v: 4},
+          {t: 'Quite comfortable', v: 7},
+          {t: 'Very comfortable', v: 10}
+        ]
+      },
+      {
+        q: 'How often do you do small thoughtful actions for them?',
+        opts: [
+          {t: 'Rarely', v: 1},
+          {t: 'Sometimes', v: 4},
+          {t: 'Often', v: 7},
+          {t: 'Regularly and intentionally', v: 10}
+        ]
+      }
+    ];
+
+    // Level mapping: score 5-50 -> level 1-10
+    function scoreToLevel(score){
+      const min = 5, max = 50;
+      const clamped = Math.max(min, Math.min(max, score));
+      const ratio = (clamped - min) / (max - min);
+      return Math.ceil(ratio * 9) + 1; // 1..10
+    }
+
+    function levelToUnlock(level){
+      // Provide unlocks and descriptions per level; Level 5 is decisive and confident.
+      const unlocks = {
+        1: {title:'Early Spark — Keep it light', desc:'Focus on clear communication and short, fun outings.'},
+        2: {title:'Casual Comfort — Texts & smiles', desc:'Comfortable texting and casual plans are normal.'},
+        3: {title:'Growing Ease — Playful nicknames OK', desc:'You can use light nicknames (e.g., “cutie”) if it feels natural.'},
+        4: {title:'Consistent Support — Small confidences', desc:'Start sharing more personal details and being reliable.'},
+        5: {title:'Emotional Trust — Affirmed Action', desc:'You have built enough consistency, comfort, and emotional connection. It is appropriate to start using affectionate nicknames like "baby". Say it with a warm tone, check their immediate reaction, and respond to how they feel.'},
+        6: {title:'Mutual Care — Meet close friends', desc:'Consider introducing each other to close friends — plan it casually.'},
+        7: {title:'Deepening Bond — Discuss intentions', desc:'Bring up future intentions like exclusivity or next-steps conversations.'},
+        8: {title:'Committed Rhythm — Shared routines', desc:'Shared routines, mini traditions, and more vulnerable conversations are unlocked.'},
+        9: {title:'Long-Term Thinking — Big plans', desc:'You can plan multi-day trips and discuss long-term expectations.'},
+        10:{title:'Milestone Ready — Major steps', desc:'Ready for major milestones: moving in together, engagement conversations, or joint financial planning.'}
+      };
+      return unlocks[level] || {title:'—', desc:'—'};
+    }
+
+    // Render quiz
+    const quizArea = document.getElementById('quizArea');
+    const qTotal = document.getElementById('qTotal');
+    const qCount = document.getElementById('qCount');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let state = { answers: Array(questions.length).fill(null), idx:0 };
+
+    qTotal.textContent = questions.length;
+
+    function renderQuestion(i){
+      const Q = questions[i];
+      quizArea.innerHTML = '';
+      const el = document.createElement('div');
+      el.className = 'question';
+      el.innerHTML = `<strong>Q${i+1}.</strong> <span style="margin-left:8px">${Q.q}</span>`;
+
+      const opts = document.createElement('div');
+      opts.className = 'options';
+      Q.opts.forEach((o,oi)=>{
+        const b = document.createElement('div');
+        b.className = 'opt';
+        b.textContent = o.t;
+        if(state.answers[i] === oi) b.classList.add('selected');
+        b.onclick = ()=>{ state.answers[i] = oi; updateUI(); }
+        opts.appendChild(b);
+      });
+
+      el.appendChild(opts);
+      quizArea.appendChild(el);
+      qCount.textContent = state.answers.filter(a=>a!==null).length;
+
+      // extra: show a brief explanation / tip for this question
+      const tip = document.createElement('div');
+      tip.style.marginTop = '12px';
+      tip.className = 'small';
+      tip.textContent = 'Be honest — the tool is friendly guidance, not rules.';
+      quizArea.appendChild(tip);
+
+      // navigation button state
+      prevBtn.disabled = (i===0);
+      nextBtn.textContent = (i === questions.length -1) ? 'Finish' : 'Next';
+    }
+
+    function computeScore(){
+      // sum selected option values; if unanswered, count minimal default 1
+      let s = 0;
+      state.answers.forEach((ans,idx)=>{
+        if(ans === null) s += 1; else s += questions[idx].opts[ans].v;
+      });
+      return s;
+    }
+
+    function updateUI(){
+      renderQuestion(state.idx);
+      const score = computeScore();
+      const level = scoreToLevel(score);
+      document.getElementById('scoreNum').textContent = score;
+      document.getElementById('levelBadge').textContent = 'Level ' + level;
+      const pct = Math.round((score - 5) / (50-5) * 100);
+      document.getElementById('progressBar').style.width = pct + '%';
+
+      const u = levelToUnlock(level);
+      document.getElementById('unlockTitle').textContent = u.title;
+      document.getElementById('unlockDesc').textContent = u.desc;
+
+      document.getElementById('resultHeadline').textContent = `${u.title}`;
+      document.getElementById('resultText').textContent = u.desc;
+
+      // highlight selected options visually
+      const optionEls = document.querySelectorAll('.options .opt');
+      optionEls.forEach(el=>el.classList.remove('selected'));
+      // re-rendering ensures correctness
+    }
+
+    prevBtn.addEventListener('click', ()=>{ if(state.idx>0){ state.idx--; renderQuestion(state.idx);} });
+    nextBtn.addEventListener('click', ()=>{
+      if(state.idx < questions.length -1){ state.idx++; renderQuestion(state.idx); }
+      else {
+        // finished
+        const score = computeScore();
+        const level = scoreToLevel(score);
+        alert(`You reached Level ${level}! See the right panel for clear, confident guidance.`);
+        updateUI();
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      if(!confirm('Reset answers and start over?')) return;
+      state.answers = Array(questions.length).fill(null); state.idx=0; updateUI();
+    });
+
+    // share text for copy
+    document.getElementById('shareBtn').addEventListener('click', ()=>{
+      const score = computeScore(); const level = scoreToLevel(score);
+      const u = levelToUnlock(level);
+      const txt = `I got Level ${level} on the Relationship Levels prototype — ${u.title}. ${u.desc}`;
+      navigator.clipboard?.writeText(txt).then(()=>{
+        alert('Share text copied to clipboard!');
+      }).catch(()=>alert('Could not copy to clipboard on this browser.'));
+    });
+
+    // download this page as index.html for GitHub
+    document.getElementById('downloadBtn').addEventListener('click', ()=>{
+      const content = `<!doctype html>\n` + document.documentElement.outerHTML;
+      const blob = new Blob([content], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'index.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // initialize
+    renderQuestion(0);
+    updateUI();
+  </script>
+</body>
+</html>
