@@ -1,309 +1,341 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Relationship Levels — Prototype</title>
-  <style>
-    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#7c3aed;--glass:rgba(255,255,255,0.04)}
-    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#071026 0%, #071430 60%);color:#e6eef8}
-    .wrap{max-width:980px;margin:36px auto;padding:28px}
-    header{display:flex;align-items:center;gap:18px}
-    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ff7ab6);display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,0.45)}
-    h1{margin:0;font-size:20px}
-    p.lead{margin:6px 0 18px;color:var(--muted)}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:20px}
-    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 6px 24px rgba(2,6,23,0.6)}
-    .muted{color:var(--muted);font-size:14px}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relationship Coach: Boundary Navigator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS STYLING --- */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    /* quiz styles */
-    .question{margin-bottom:14px}
-    .options{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-    .opt{background:var(--glass);padding:8px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,0.03)}
-    .opt.selected{outline:3px solid rgba(124,58,237,0.18);background:linear-gradient(90deg,rgba(124,58,237,0.06),rgba(255,255,255,0.012))}
-    .footer{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:14px}
-    .btn{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+        header {
+            background-color: #ff6f61; /* Soft Red/Coral */
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-    /* right column */
-    .progress-wrap{display:flex;flex-direction:column;gap:12px}
-    .progress{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden}
-    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#ff7ab6);width:0%}
-    .level-badge{display:inline-block;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.03)}
-    .unlock{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:10px;border-radius:10px}
-    .unlock h4{margin:0 0 6px}
-    .small{font-size:13px;color:var(--muted)}
-    .result{padding:12px;border-radius:10px;background:linear-gradient(90deg,rgba(124,58,237,0.06),transparent);}
+        h1 {
+            margin: 0 0 5px 0;
+        }
 
-    footer{color:var(--muted);margin-top:18px;font-size:13px}
+        .container {
+            width: 90%;
+            max-width: 800px;
+            padding: 20px;
+        }
 
-    @media (max-width:900px){.grid{grid-template-columns:1fr} .wrap{padding:18px}}
-  </style>
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Leveling System Styles --- */
+        #level-system h2 {
+            color: #007bff; /* Blue for key status */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #current-level-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            cursor: pointer; /* To indicate it's clickable for testing */
+            text-decoration: underline;
+        }
+
+        .progress-bar-container {
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 15px;
+            margin: 10px 0 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%; /* Controlled by JS */
+            background-color: #28a745; /* Green for progress */
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        #unlock-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #unlock-list li {
+            background: #e6f7ff; /* Light blue background for unlocks */
+            margin-bottom: 8px;
+            padding: 10px;
+            border-left: 5px solid #007bff;
+            border-radius: 4px;
+        }
+
+        /* --- Warning/Guidance Styles --- */
+        .warning-card {
+            border: 1px solid #ffc107; /* Yellow warning border */
+            background-color: #fffbe6; /* Light yellow background */
+        }
+
+        #guidance-section h3 {
+            color: #ffc107;
+        }
+
+        /* --- AI Coach Styles --- */
+        .coach-card {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+        }
+
+        #user-question {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .response-box {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap">
+
     <header>
-      <div class="logo">RL</div>
-      <div>
-        <h1>Relationship Levels — Prototype</h1>
-        <p class="lead">A playful, confidence-first guide that shows what actions are typically appropriate as a relationship deepens.</p>
-      </div>
+        <h1>💖 Boundary Navigator</h1>
+        <p>Your guide to healthy relationship progression. **Level up your communication!**</p>
     </header>
 
-    <main class="grid" style="margin-top:18px">
-      <section class="card" id="quizCard">
-        <h3>Quick Relationship Check</h3>
-        <p class="muted">Answer honestly. We'll compute a friendly level and show you unlocked actions.</p>
-
-        <div id="quizArea" style="margin-top:14px">
-          <!-- questions injected by JS -->
-        </div>
-
-        <div class="footer">
-          <div class="small">Progress: <span id="qCount">0</span>/<span id="qTotal">0</span></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn" id="prevBtn">Back</button>
-            <button class="btn" id="nextBtn">Next</button>
-            <button class="btn ghost" id="resetBtn">Reset</button>
-          </div>
-        </div>
-      </section>
-
-      <aside class="card">
-        <div class="progress-wrap">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div class="small">Relationship Maturity</div>
-              <div style="margin-top:6px"><span class="level-badge" id="levelBadge">Level —</span></div>
+    <div class="container">
+        <section id="level-system" class="card">
+            <h2>Current Status: <span id="current-level-name">The Scout</span></h2>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
             </div>
-            <div style="text-align:right">
-              <div class="small">Score</div>
-              <div id="scoreNum" style="font-weight:700;font-size:18px">0</div>
-            </div>
-          </div>
+            <p>Level: <span id="current-level">1</span> / 5</p>
 
-          <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+            <h3>Milestone Unlocks for Current Level</h3>
+            <ul id="unlock-list">
+                </ul>
+        </section>
+        
+        <section id="guidance-section" class="card warning-card">
+            <h3>⚠️ Intimacy & Boundary Guidance</h3>
+            <p id="intimacy-message"></p>
+        </section>
 
-          <div style="margin-top:10px">
-            <div class="unlock">
-              <h4 id="unlockTitle">—</h4>
-              <div class="small" id="unlockDesc">Complete the quiz to see unlocked actions.</div>
-            </div>
-          </div>
+        <section id="ai-coach" class="card coach-card">
+            <h2>🤖 Ask the AI Coach</h2>
+            <p>For context-specific advice (e.g., "Is it too soon to meet her friends?").</p>
+            <textarea id="user-question" placeholder="Ask your question here..." rows="3"></textarea>
+            <button onclick="askAICoach()">Get Advice</button>
+            <div id="ai-response" class="response-box"></div>
+        </section>
 
-          <div style="margin-top:12px">
-            <div class="result" id="resultCard">
-              <strong id="resultHeadline">Answer questions to get your level</strong>
-              <p class="small" id="resultText">You'll get clear, confidence-forward guidance at each level. Level 5 is written to be decisive.</p>
-            </div>
-          </div>
+    </div>
 
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <button class="btn" id="shareBtn">Copy Share Text</button>
-            <button class="btn ghost" id="downloadBtn">Download HTML</button>
-          </div>
-        </div>
-      </aside>
-    </main>
+    <script>
+        /* --- JAVASCRIPT LOGIC --- */
 
-    <footer>
-      Tip: this is a prototype. Use the "Reset" button to retake the quiz. Built for GitHub as a single <code>index.html</code> file.
-    </footer>
-  </div>
+        // --- 1. LEVEL DATA STRUCTURE ---
+        const relationshipLevels = [
+            {
+                level: 1,
+                name: "The Scout",
+                criteria: "Texting for 3+ days / 1-2 Dates",
+                unlocks: [
+                    "Casual conversation topics (Hobbies, Work)",
+                    "Light teasing/humor (via text/in person)",
+                    "Safe to ask for a second date (low pressure)"
+                ],
+                intimacy_guidance: "⚠️ **Warning (Boundaries):** Discussions about deep personal past or expectations of intimacy are **strongly discouraged**. Focus on light, fun interaction and learning common interests."
+            },
+            {
+                level: 2,
+                name: "The Prospect",
+                criteria: "3+ Dates / First Kiss/Prolonged Hand-holding",
+                unlocks: [
+                    "Using light, non-committal pet names ('Cutie', 'Sweetie')",
+                    "Appropriate to plan dates 1 week in advance",
+                    "Safe to give genuine non-sexual physical compliments"
+                ],
+                intimacy_guidance: "🤝 **Suggestion (Comfort):** Appropriate time to gauge comfort with light physical contact (arm around shoulder, sitting close). **Safety First:** ALWAYS respect verbal boundaries. Communication is key."
+            },
+            {
+                level: 3,
+                name: "The Rookie",
+                criteria: "Exclusivity Talk / 1-3 Months Dating",
+                unlocks: [
+                    "Using committed pet names ('Babe', 'Honey')",
+                    "Safe to meet close friends (Group setting)",
+                    "Appropriate to stay overnight (with pre-discussed boundaries)"
+                ],
+                intimacy_guidance: "💬 **Suggestion (Discussion):** It's appropriate to discuss future expectations on intimacy and relationship dynamics. **Caution:** Never pressure. Ensure enthusiasm and ongoing consent for everything."
+            },
+            {
+                level: 4,
+                name: "The MVP",
+                criteria: "6+ Months / Declared Official Relationship",
+                unlocks: [
+                    "Appropriate to introduce to parents/family",
+                    "Safe to plan joint weekend trips/vacations",
+                    "Safe to say 'I love you' (if emotionally ready)"
+                ],
+                intimacy_guidance: "✅ **Green Zone (Vulnerability):** Appropriate to discuss past relationship experiences and complex emotional needs. Continue to prioritize open communication, especially during conflict."
+            },
+            {
+                level: 5,
+                name: "Hall of Famer",
+                criteria: "1+ Year / Discussion of Long-Term Future",
+                unlocks: [
+                    "Appropriate to discuss shared finances or moving in",
+                    "Safe to give partner key to apartment/house",
+                    "Discussions about engagement/marriage/children"
+                ],
+                intimacy_guidance: "🏡 **Safety (Habit):** Communication about intimacy and boundaries should be a consistent, loving habit, not just a one-time discussion. Prioritize emotional safety and respect."
+            }
+        ];
 
-  <script>
-    /* ====== Questions and scoring ======
-       Each answer provides points toward a maturity score.
-       The score maps to levels 1-10.
-    */
+        // --- 2. FRONT-END DISPLAY LOGIC ---
 
-    const questions = [
-      {
-        q: 'How long have you been regularly seeing this person (dating, talking, spending time)?',
-        opts: [
-          {t: 'Less than 2 weeks', v: 2},
-          {t: '2–8 weeks', v: 4},
-          {t: '3–6 months', v: 7},
-          {t: '6+ months', v: 9}
-        ]
-      },
-      {
-        q: 'How often do you communicate honestly about feelings and boundaries?',
-        opts: [
-          {t: 'Rarely', v: 1},
-          {t: 'Sometimes', v: 4},
-          {t: 'Often, when it matters', v: 7},
-          {t: 'Openly and regularly', v: 10}
-        ]
-      },
-      {
-        q: 'How well do you handle small conflicts?',
-        opts: [
-          {t: 'Avoid or escalate', v: 1},
-          {t: 'We make up but repeat', v: 4},
-          {t: 'We talk and adjust', v: 7},
-          {t: 'We learn and adapt', v: 10}
-        ]
-      },
-      {
-        q: 'How comfortable are you sharing personal details (family stories, fears)?',
-        opts: [
-          {t: 'Not yet', v: 1},
-          {t: 'A little', v: 4},
-          {t: 'Quite comfortable', v: 7},
-          {t: 'Very comfortable', v: 10}
-        ]
-      },
-      {
-        q: 'How often do you do small thoughtful actions for them?',
-        opts: [
-          {t: 'Rarely', v: 1},
-          {t: 'Sometimes', v: 4},
-          {t: 'Often', v: 7},
-          {t: 'Regularly and intentionally', v: 10}
-        ]
-      }
-    ];
+        // Set the current user's level (default starting point)
+        let userLevel = 1;
 
-    // Level mapping: score 5-50 -> level 1-10
-    function scoreToLevel(score){
-      const min = 5, max = 50;
-      const clamped = Math.max(min, Math.min(max, score));
-      const ratio = (clamped - min) / (max - min);
-      return Math.ceil(ratio * 9) + 1; // 1..10
-    }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize the app display
+            renderLevel(userLevel);
 
-    function levelToUnlock(level){
-      // Provide unlocks and descriptions per level; Level 5 is decisive and confident.
-      const unlocks = {
-        1: {title:'Early Spark — Keep it light', desc:'Focus on clear communication and short, fun outings.'},
-        2: {title:'Casual Comfort — Texts & smiles', desc:'Comfortable texting and casual plans are normal.'},
-        3: {title:'Growing Ease — Playful nicknames OK', desc:'You can use light nicknames (e.g., “cutie”) if it feels natural.'},
-        4: {title:'Consistent Support — Small confidences', desc:'Start sharing more personal details and being reliable.'},
-        5: {title:'Emotional Trust — Affirmed Action', desc:'You have built enough consistency, comfort, and emotional connection. It is appropriate to start using affectionate nicknames like "baby". Say it with a warm tone, check their immediate reaction, and respond to how they feel.'},
-        6: {title:'Mutual Care — Meet close friends', desc:'Consider introducing each other to close friends — plan it casually.'},
-        7: {title:'Deepening Bond — Discuss intentions', desc:'Bring up future intentions like exclusivity or next-steps conversations.'},
-        8: {title:'Committed Rhythm — Shared routines', desc:'Shared routines, mini traditions, and more vulnerable conversations are unlocked.'},
-        9: {title:'Long-Term Thinking — Big plans', desc:'You can plan multi-day trips and discuss long-term expectations.'},
-        10:{title:'Milestone Ready — Major steps', desc:'Ready for major milestones: moving in together, engagement conversations, or joint financial planning.'}
-      };
-      return unlocks[level] || {title:'—', desc:'—'};
-    }
+            // Functionality to advance level (for testing purposes)
+            document.getElementById('current-level-name').addEventListener('click', () => {
+                if (userLevel < 5) {
+                    userLevel++;
+                    renderLevel(userLevel);
+                } else {
+                    alert('You have reached the top level!');
+                }
+            });
+        });
 
-    // Render quiz
-    const quizArea = document.getElementById('quizArea');
-    const qTotal = document.getElementById('qTotal');
-    const qCount = document.getElementById('qCount');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
+        function renderLevel(level) {
+            const currentData = relationshipLevels[level - 1];
+            
+            // Update basic level info
+            document.getElementById('current-level').textContent = currentData.level;
+            document.getElementById('current-level-name').textContent = currentData.name;
+            document.getElementById('intimacy-message').innerHTML = currentData.intimacy_guidance;
 
-    let state = { answers: Array(questions.length).fill(null), idx:0 };
+            // Update the progress bar
+            const progress = (level / relationshipLevels.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
 
-    qTotal.textContent = questions.length;
+            // Update the unlock list
+            const unlockList = document.getElementById('unlock-list');
+            unlockList.innerHTML = ''; // Clear previous list
+            currentData.unlocks.forEach(unlock => {
+                const li = document.createElement('li');
+                li.textContent = unlock;
+                unlockList.appendChild(li);
+            });
+        }
 
-    function renderQuestion(i){
-      const Q = questions[i];
-      quizArea.innerHTML = '';
-      const el = document.createElement('div');
-      el.className = 'question';
-      el.innerHTML = `<strong>Q${i+1}.</strong> <span style="margin-left:8px">${Q.q}</span>`;
+        // --- 3. AI COACH INTEGRATION LOGIC (Placeholder) ---
 
-      const opts = document.createElement('div');
-      opts.className = 'options';
-      Q.opts.forEach((o,oi)=>{
-        const b = document.createElement('div');
-        b.className = 'opt';
-        b.textContent = o.t;
-        if(state.answers[i] === oi) b.classList.add('selected');
-        b.onclick = ()=>{ state.answers[i] = oi; updateUI(); }
-        opts.appendChild(b);
-      });
+        // **IMPORTANT SECURITY NOTE:** Do not run API calls directly from client-side JS with your key! 
+        // This function simulates the response, as the API call should be handled securely on a server.
 
-      el.appendChild(opts);
-      quizArea.appendChild(el);
-      qCount.textContent = state.answers.filter(a=>a!==null).length;
+        async function askAICoach() {
+            const question = document.getElementById('user-question').value;
+            const responseBox = document.getElementById('ai-response');
+            responseBox.innerHTML = 'Thinking... 🤔';
+            
+            if (!question.trim()) {
+                responseBox.textContent = 'Please enter a question.';
+                return;
+            }
 
-      // extra: show a brief explanation / tip for this question
-      const tip = document.createElement('div');
-      tip.style.marginTop = '12px';
-      tip.className = 'small';
-      tip.textContent = 'Be honest — the tool is friendly guidance, not rules.';
-      quizArea.appendChild(tip);
+            const currentLevelName = relationshipLevels[userLevel - 1].name;
+            
+            // **The Payload for the AI API (Crucial for Context)**
+            const prompt = `${getSystemPrompt(currentLevelName)} \n\nUser's Current Status: ${currentLevelName} (Level ${userLevel}). \n\nUser Question: ${question}`;
 
-      // navigation button state
-      prevBtn.disabled = (i===0);
-      nextBtn.textContent = (i === questions.length -1) ? 'Finish' : 'Next';
-    }
+            // --- Simulation of API Call ---
+            
+            // This is where you would replace the code below with a secure fetch() 
+            // call to your server (e.g., Firebase Function or Node.js endpoint) 
+            // which then calls the actual AI (OpenAI/Gemini).
+            
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network latency
 
-    function computeScore(){
-      // sum selected option values; if unanswered, count minimal default 1
-      let s = 0;
-      state.answers.forEach((ans,idx)=>{
-        if(ans === null) s += 1; else s += questions[idx].opts[ans].v;
-      });
-      return s;
-    }
+            responseBox.innerHTML = `**AI Coach Response (Simulated):**<br><br>
+                *Your question has been securely processed with the context of Level ${userLevel} - ${currentLevelName}.*<br><br>
+                *In a real application, the AI would generate a safe, consent-focused answer here.*<br><br>
+                **System Prompt Used (Excerpt):** "${getSystemPrompt().substring(0, 100)}..."`;
+            
+            document.getElementById('user-question').value = ''; // Clear the input
+        }
 
-    function updateUI(){
-      renderQuestion(state.idx);
-      const score = computeScore();
-      const level = scoreToLevel(score);
-      document.getElementById('scoreNum').textContent = score;
-      document.getElementById('levelBadge').textContent = 'Level ' + level;
-      const pct = Math.round((score - 5) / (50-5) * 100);
-      document.getElementById('progressBar').style.width = pct + '%';
+        // --- 4. THE SYSTEM PROMPT FUNCTION (The Ethical Rules) ---
 
-      const u = levelToUnlock(level);
-      document.getElementById('unlockTitle').textContent = u.title;
-      document.getElementById('unlockDesc').textContent = u.desc;
-
-      document.getElementById('resultHeadline').textContent = `${u.title}`;
-      document.getElementById('resultText').textContent = u.desc;
-
-      // highlight selected options visually
-      const optionEls = document.querySelectorAll('.options .opt');
-      optionEls.forEach(el=>el.classList.remove('selected'));
-      // re-rendering ensures correctness
-    }
-
-    prevBtn.addEventListener('click', ()=>{ if(state.idx>0){ state.idx--; renderQuestion(state.idx);} });
-    nextBtn.addEventListener('click', ()=>{
-      if(state.idx < questions.length -1){ state.idx++; renderQuestion(state.idx); }
-      else {
-        // finished
-        const score = computeScore();
-        const level = scoreToLevel(score);
-        alert(`You reached Level ${level}! See the right panel for clear, confident guidance.`);
-        updateUI();
-      }
-    });
-
-    document.getElementById('resetBtn').addEventListener('click', ()=>{
-      if(!confirm('Reset answers and start over?')) return;
-      state.answers = Array(questions.length).fill(null); state.idx=0; updateUI();
-    });
-
-    // share text for copy
-    document.getElementById('shareBtn').addEventListener('click', ()=>{
-      const score = computeScore(); const level = scoreToLevel(score);
-      const u = levelToUnlock(level);
-      const txt = `I got Level ${level} on the Relationship Levels prototype — ${u.title}. ${u.desc}`;
-      navigator.clipboard?.writeText(txt).then(()=>{
-        alert('Share text copied to clipboard!');
-      }).catch(()=>alert('Could not copy to clipboard on this browser.'));
-    });
-
-    // download this page as index.html for GitHub
-    document.getElementById('downloadBtn').addEventListener('click', ()=>{
-      const content = `<!doctype html>\n` + document.documentElement.outerHTML;
-      const blob = new Blob([content], {type:'text/html'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = 'index.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    });
-
-    // initialize
-    renderQuestion(0);
-    updateUI();
-  </script>
+        function getSystemPrompt(currentLevelName = "Unknown") {
+            // This is the essential set of rules that governs the AI's behavior and ensures safety.
+            return `
+                You are 'The Boundary Navigator Coach,' a supportive, non-judgemental relationship advisor.
+                Your primary goal is to promote **open communication, mutual comfort, and enthusiastic consent** above all else.
+                
+                **CORE DIRECTIVES:**
+                1. **Safety First:** Never provide explicit advice on physical acts. Your advice must focus ONLY on the *communication* and *timing* surrounding relationship milestones.
+                2. **Prioritize the Partner:** Always state that the safest, healthiest move is to **ask the partner directly**. Your advice is only a suggestion for *when* the conversation is appropriate.
+                3. **Context Awareness:** All answers must be tailored to the user's current level (${currentLevelName}). If the question is far too advanced for their level, issue a polite but firm **🚫 WARNING** about potential boundary crossing.
+                4. **Tone:** Use encouraging, supportive, and mature language. Avoid slang.
+                
+                **RESPONSE STRUCTURE:**
+                Start your response with either a **✅ SUGGESTION** or a **🚫 WARNING**.
+                Then, provide 2-3 short, actionable pieces of advice.
+                Conclude with a clear reminder about communication.
+            `;
+        }
+    </script>
 </body>
 </html>
